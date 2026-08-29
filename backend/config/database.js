@@ -7,12 +7,25 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+const clean = (val) => {
+  if (!val) return "";
+  let s = String(val).trim();
+  if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) {
+    s = s.slice(1, -1).trim();
+  }
+  return s;
+};
+
 const getPoolConfig = () => {
-  const databaseUrl = process.env.DATABASE_URL || 
-                      process.env.MYSQL_URL || 
-                      process.env.MYSQL_PRIVATE_URL || 
-                      process.env.MYSQL_PUBLIC_URL || 
-                      process.env.DB_URL;
+  const rawUrl = clean(
+    process.env.DATABASE_URL || 
+    process.env.MYSQL_URL || 
+    process.env.MYSQL_PRIVATE_URL || 
+    process.env.MYSQL_PUBLIC_URL || 
+    process.env.DB_URL
+  );
+
+  const isRailway = Boolean(process.env.RAILWAY_ENVIRONMENT_ID || process.env.RAILWAY_SERVICE_ID || process.env.RAILWAY_PROJECT_ID);
 
   const baseOptions = {
     waitForConnections: true,
@@ -23,18 +36,18 @@ const getPoolConfig = () => {
     connectTimeout: 15000
   };
 
-  if (databaseUrl && !databaseUrl.startsWith("${{")) {
+  if (rawUrl && !rawUrl.startsWith("${{")) {
     try {
-      const parsed = new URL(databaseUrl);
+      const parsed = new URL(rawUrl);
       const host = parsed.hostname;
       const port = parseInt(parsed.port || "3306", 10);
       const user = decodeURIComponent(parsed.username || "root");
       const password = decodeURIComponent(parsed.password || "");
       const dbName = parsed.pathname ? parsed.pathname.replace(/^\//, "") : "";
-      const database = dbName || process.env.DB_NAME || process.env.MYSQLDATABASE || "railway";
+      const database = dbName || clean(process.env.DB_NAME || process.env.MYSQLDATABASE) || "railway";
       const isInternal = host.endsWith(".railway.internal") || host === "localhost" || host === "127.0.0.1";
 
-      console.log(`Configuring MySQL connection to: ${user}@${host}:${port}/${database} (Internal: ${isInternal})`);
+      console.log(`Configuring MySQL via URL: ${user}@${host}:${port}/${database} (Internal: ${isInternal})`);
 
       const config = {
         host,
@@ -55,14 +68,20 @@ const getPoolConfig = () => {
     }
   }
 
-  const host = process.env.DB_HOST || process.env.MYSQLHOST || process.env.MYSQL_HOST || "localhost";
-  const port = parseInt(process.env.DB_PORT || process.env.MYSQLPORT || process.env.MYSQL_PORT || "3306", 10);
-  const database = process.env.DB_NAME || process.env.MYSQLDATABASE || process.env.MYSQL_DATABASE || "railway";
-  const user = process.env.DB_USER || process.env.MYSQLUSER || process.env.MYSQL_USER || "root";
-  const password = process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || process.env.MYSQL_PASSWORD || "";
+  let host = clean(process.env.DB_HOST || process.env.MYSQLHOST || process.env.MYSQL_HOST);
+  if ((!host || host === "localhost") && isRailway) {
+    host = "mysql.railway.internal";
+  } else if (!host) {
+    host = "localhost";
+  }
+
+  const port = parseInt(clean(process.env.DB_PORT || process.env.MYSQLPORT || process.env.MYSQL_PORT) || "3306", 10);
+  const database = clean(process.env.DB_NAME || process.env.MYSQLDATABASE || process.env.MYSQL_DATABASE) || (isRailway ? "railway" : "pcmc_billpro");
+  const user = clean(process.env.DB_USER || process.env.MYSQLUSER || process.env.MYSQL_USER) || "root";
+  const password = clean(process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || process.env.MYSQL_PASSWORD || "");
   const isInternal = host.endsWith(".railway.internal") || host === "localhost" || host === "127.0.0.1";
 
-  console.log(`Configuring MySQL connection to: ${user}@${host}:${port}/${database} (Internal: ${isInternal})`);
+  console.log(`Configuring MySQL via parameters: ${user}@${host}:${port}/${database} (Internal: ${isInternal}, Railway: ${isRailway})`);
 
   const config = {
     host,
