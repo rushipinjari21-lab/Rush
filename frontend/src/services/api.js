@@ -4,12 +4,10 @@ export const formatApiUrl = (input) => {
   if (!input) return ''
   let url = input.trim()
 
-  // `/api` is used by the hosted website, where Nginx proxies requests to the
-  // backend on the same HTTPS domain. Keep it relative so browsers do not
-  // attempt to call a non-existent `http://api` host.
   if (url.startsWith('/')) {
-    url = url.replace(/\/+$/, '')
-    return url.endsWith('/api') ? url : `${url}/api`
+    if (typeof window !== 'undefined' && window.location.origin) {
+      url = `${window.location.origin}${url}`
+    }
   }
 
   if (!/^https?:\/\//i.test(url)) {
@@ -25,14 +23,13 @@ export const formatApiUrl = (input) => {
 export const getDefaultApiUrl = () => {
   const configuredApiUrl = import.meta.env.VITE_API_URL?.trim()
   if (configuredApiUrl) return formatApiUrl(configuredApiUrl)
-  if (import.meta.env.DEV) return '/api'
 
   if (
     typeof window !== 'undefined' &&
     /^https?:$/.test(window.location.protocol) &&
     !['localhost', '127.0.0.1', '::1'].includes(window.location.hostname)
   ) {
-    return '/api'
+    return `${window.location.origin}/api`
   }
 
   // Standalone public cloud backend for Android APK and multi-device access
@@ -94,10 +91,6 @@ api.interceptors.response.use(
     const method = request?.method?.toLowerCase()
     const isSafeToRetry = ['get', 'head', 'options'].includes(method)
 
-    // XAMPP can take a moment to bring MySQL back after Windows wakes or the
-    // control panel restarts it. Only retry requests that cannot create or
-    // change data. Retrying a POST after its response was lost can otherwise
-    // save a project and then incorrectly show a duplicate-project error.
     if (
       request &&
       isSafeToRetry &&
@@ -109,7 +102,12 @@ api.interceptors.response.use(
       return api(request)
     }
 
-    if (error.response?.status === 401) {
+    if (
+      error.response?.status === 401 &&
+      !request?.url?.includes('/auth/login') &&
+      typeof window !== 'undefined' &&
+      !window.location.pathname.includes('/login')
+    ) {
       localStorage.removeItem('token')
       localStorage.removeItem('user')
       window.location.href = '/login'
