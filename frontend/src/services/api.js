@@ -1,0 +1,104 @@
+import axios from 'axios'
+
+export const formatApiUrl = (input) => {
+  if (!input) return ''
+  let url = input.trim()
+
+  // `/api` is used by the hosted website, where Nginx proxies requests to the
+  // backend on the same HTTPS domain. Keep it relative so browsers do not
+  // attempt to call a non-existent `http://api` host.
+  if (url.startsWith('/')) {
+    url = url.replace(/\/+$/, '')
+    return url.endsWith('/api') ? url : `${url}/api`
+  }
+
+  if (!/^https?:\/\//i.test(url)) {
+    url = `http://${url}`
+  }
+  url = url.replace(/\/+$/, '')
+  if (!url.endsWith('/api')) {
+    url = `${url}/api`
+  }
+  return url
+}
+
+export const getDefaultApiUrl = () => {
+  const configuredApiUrl = import.meta.env.VITE_API_URL?.trim()
+  if (configuredApiUrl) return formatApiUrl(configuredApiUrl)
+  if (import.meta.env.DEV) return '/api'
+
+  if (
+    typeof window !== 'undefined' &&
+    /^https?:$/.test(window.location.protocol) &&
+    !['localhost', '127.0.0.1', '::1'].includes(window.location.hostname)
+  ) {
+    return formatApiUrl(`${window.location.protocol}//${window.location.hostname}:5000/api`)
+  }
+
+  // In Capacitor Android WebView or native container, default to localhost:5000/api
+  return 'http://localhost:5000/api'
+}
+
+export const getStoredApiUrl = () => {
+  const stored = localStorage.getItem('pcmc_server_url')?.trim()
+  return stored ? formatApiUrl(stored) : getDefaultApiUrl()
+}
+
+export const setStoredApiUrl = (url) => {
+  if (url && url.trim()) {
+    const formatted = formatApiUrl(url)
+    localStorage.setItem('pcmc_server_url', formatted)
+    api.defaults.baseURL = formatted
+    return formatted
+  } else {
+    localStorage.removeItem('pcmc_server_url')
+    const def = getDefaultApiUrl()
+    api.defaults.baseURL = def
+    return def
+  }
+}
+
+const api = axios.create({
+  baseURL: getStoredApiUrl(),
+  headers: { 'Content-Type': 'application/json' }
+})
+
+api.interceptors.request.use((config) => {
+  config.baseURL = getStoredApiUrl()
+  const token = localStorage.getItem('token')
+  if (token) config.headers.Authorization = `Bearer ${token}`
+  return config
+}, (error) => Promise.reject(error))
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const request = error.config
+    const method = request?.method?.toLowerCase()
+    const isSafeToRetry = ['get', 'head', 'options'].includes(method)
+
+    // XAMPP can take a moment to bring MySQL back after Windows wakes or the
+    // control panel restarts it. Only retry requests that cannot create or
+    // change data. Retrying a POST after its response was lost can otherwise
+    // save a project and then incorrectly show a duplicate-project error.
+    if (
+      request &&
+      isSafeToRetry &&
+      (error.code === 'ERR_NETWORK' || error.response?.status === 503) &&
+      (request.__pcmcRetryCount || 0) < 2
+    ) {
+      request.__pcmcRetryCount = (request.__pcmcRetryCount || 0) + 1
+      await new Promise((resolve) => setTimeout(resolve, 1200 * request.__pcmcRetryCount))
+      return api(request)
+    }
+
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      window.location.href = '/login'
+    }
+    return Promise.reject(error)
+  }
+)
+
+export default api

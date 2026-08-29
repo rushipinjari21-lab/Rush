@@ -1,0 +1,16 @@
+{
+  "appId": "com.pcmc.billpro",
+  "appName": "PCMC BillPro",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "http",
+    "cleartext": true,
+    "allowNavigation": ["*"]
+  },
+  "android": {
+    "allowMixedContent": true
+  },
+  "ios": {
+    "contentInset": "always"
+  }
+}

@@ -1,0 +1,62 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Environment variables & secrets (CRITICAL)
+.env
+.env.local
+.env.*.local
+.env.production
+backend/.env
+backend/.env.production
+frontend/.env
+frontend/.env.production
+*.env
+
+# Retain example configuration files
+!.env.example
+!backend/.env.example
+
+# Build Outputs
+dist/
+frontend/dist/
+build/
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# IDE & Editor files
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+
+# Android Build Artifacts (Keep repository lightweight for GitHub)
+frontend/android/.gradle/
+frontend/android/build/
+frontend/android/app/build/
+frontend/android/capacitor-cordova-android-plugins/build/
+frontend/android/app/src/main/assets/public/
+frontend/android/app/src/main/assets/capacitor.config.json
+frontend/android/local.properties
+
+# Large archives and binaries
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+*.apk
+*.aab
+frontend.zip
