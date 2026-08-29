@@ -20,6 +20,7 @@ import {
 } from '@mui/material'
 import WifiIcon from '@mui/icons-material/Wifi'
 import WifiOffIcon from '@mui/icons-material/WifiOff'
+import PublicIcon from '@mui/icons-material/Public'
 import DnsIcon from '@mui/icons-material/Dns'
 import StorageIcon from '@mui/icons-material/Storage'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
@@ -174,13 +175,13 @@ export const ConnectionStatusBadge = () => {
           <List dense sx={{ mb: 2, bgcolor: '#f8fafc', borderRadius: 2, border: '1px solid #e2e8f0', p: 1 }}>
             <ListItem>
               <ListItemIcon sx={{ minWidth: 36 }}>
-                {status.internet ? <WifiIcon color="success" fontSize="small" /> : <WifiOffIcon color="error" fontSize="small" />}
+                <PublicIcon color={status.internet ? "success" : "error"} fontSize="small" />
               </ListItemIcon>
               <ListItemText
-                primary={<Typography variant="body2" fontWeight={600}>1. Internet Connection</Typography>}
-                secondary={status.internet ? 'Online' : 'Disconnected'}
+                primary={<Typography variant="body2" fontWeight={600}>1. Network & Mobile Data (4G / 5G / Any)</Typography>}
+                secondary={status.internet ? 'Online & Accessible Anywhere' : 'Disconnected'}
               />
-              <Chip label={status.internet ? 'Connected' : 'Offline'} size="small" color={status.internet ? 'success' : 'error'} variant="outlined" />
+              <Chip label={status.internet ? 'Online (Any Network)' : 'Offline'} size="small" color={status.internet ? 'success' : 'error'} variant="outlined" />
             </ListItem>
 
             <ListItem>

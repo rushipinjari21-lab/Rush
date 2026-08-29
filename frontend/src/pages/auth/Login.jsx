@@ -258,8 +258,8 @@ const Login = () => {
             label="Backend API URL"
             value={serverUrlInput}
             onChange={(e) => setServerUrlInput(e.target.value)}
-            placeholder="https://billing.example.com/api"
-            helperText="For a local Wi-Fi test use http://&lt;PC-IP&gt;:5000/api. Published apps should use HTTPS."
+            placeholder="https://remarkable-gentleness-production-a680.up.railway.app/api"
+            helperText="24/7 Cloud Central API. Connects from any phone on 4G, 5G, or any network."
             margin="dense"
           />
 
