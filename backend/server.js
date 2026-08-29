@@ -201,10 +201,10 @@ mountRoutes("");
 
 // Serve static React web application for browser and multi-device access
 const publicCandidates = [
-  path.join(__dirname, "public"),
   path.join(__dirname, "../frontend/dist"),
-  path.join(process.cwd(), "backend/public"),
-  path.join(process.cwd(), "frontend/dist")
+  path.join(process.cwd(), "frontend/dist"),
+  path.join(__dirname, "public"),
+  path.join(process.cwd(), "backend/public")
 ];
 const staticDir = publicCandidates.find(p => fs.existsSync(path.join(p, "index.html")));
 if (staticDir) {
