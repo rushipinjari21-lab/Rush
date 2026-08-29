@@ -19,25 +19,40 @@ const getPoolConfig = () => {
   };
 
   if (databaseUrl) {
-    return {
-      uri: databaseUrl,
-      ...baseOptions,
-      ssl: process.env.DB_SSL === "true" || (process.env.NODE_ENV === "production" && !databaseUrl.includes("localhost") && !databaseUrl.includes("127.0.0.1"))
-        ? { rejectUnauthorized: false }
-        : undefined
-    };
+    try {
+      const parsed = new URL(databaseUrl);
+      const isInternal = parsed.hostname.endsWith(".railway.internal") || parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1";
+      return {
+        host: parsed.hostname,
+        port: parseInt(parsed.port || "3306", 10),
+        user: decodeURIComponent(parsed.username || "root"),
+        password: decodeURIComponent(parsed.password || ""),
+        database: parsed.pathname.replace(/^\//, "") || "railway",
+        ...baseOptions,
+        ssl: (process.env.DB_SSL === "true" || (!isInternal && process.env.NODE_ENV === "production"))
+          ? { rejectUnauthorized: false }
+          : undefined
+      };
+    } catch (e) {
+      console.warn("Could not parse database URL with URL constructor:", e.message);
+    }
   }
 
-  const isRemoteHost = !["localhost", "127.0.0.1", "::1"].includes(process.env.DB_HOST || process.env.MYSQLHOST || "localhost");
+  const host = process.env.DB_HOST || process.env.MYSQLHOST || "localhost";
+  const port = parseInt(process.env.DB_PORT || process.env.MYSQLPORT || "3306", 10);
+  const database = process.env.DB_NAME || process.env.MYSQLDATABASE || "pcmc_billpro";
+  const user = process.env.DB_USER || process.env.MYSQLUSER || "root";
+  const password = process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || "";
+  const isRemote = !["localhost", "127.0.0.1", "::1"].includes(host) && !host.endsWith(".railway.internal");
 
   return {
-    host: process.env.DB_HOST || process.env.MYSQLHOST || "localhost",
-    port: parseInt(process.env.DB_PORT || process.env.MYSQLPORT || "3306", 10),
-    database: process.env.DB_NAME || process.env.MYSQLDATABASE || "pcmc_billpro",
-    user: process.env.DB_USER || process.env.MYSQLUSER || "root",
-    password: process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || "",
+    host,
+    port,
+    database,
+    user,
+    password,
     ...baseOptions,
-    ssl: process.env.DB_SSL === "true" || (process.env.NODE_ENV === "production" && isRemoteHost)
+    ssl: (process.env.DB_SSL === "true" || (process.env.NODE_ENV === "production" && isRemote))
       ? { rejectUnauthorized: false }
       : undefined
   };
