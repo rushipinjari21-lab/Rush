@@ -176,6 +176,7 @@ const healthHandler = (req, res) => {
 app.get("/", healthHandler);
 app.get("/health", healthHandler);
 app.get("/api/health", healthHandler);
+app.get("/favicon.ico", (req, res) => res.status(204).end());
 
 // Keep Express alive while MySQL is starting, but let health checks through
 app.use((req, res, next) => {

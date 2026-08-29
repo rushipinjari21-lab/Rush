@@ -13,7 +13,7 @@ export const formatApiUrl = (input) => {
   }
 
   if (!/^https?:\/\//i.test(url)) {
-    url = `http://${url}`
+    url = `https://${url}`
   }
   url = url.replace(/\/+$/, '')
   if (!url.endsWith('/api')) {
