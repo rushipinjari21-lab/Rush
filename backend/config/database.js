@@ -78,7 +78,14 @@ const getPoolConfig = () => {
   const port = parseInt(clean(process.env.DB_PORT || process.env.MYSQLPORT || process.env.MYSQL_PORT) || "3306", 10);
   const database = clean(process.env.DB_NAME || process.env.MYSQLDATABASE || process.env.MYSQL_DATABASE) || (isRailway ? "railway" : "pcmc_billpro");
   const user = clean(process.env.DB_USER || process.env.MYSQLUSER || process.env.MYSQL_USER) || "root";
-  const password = clean(process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || process.env.MYSQL_PASSWORD || "");
+  const password = clean(
+    process.env.DB_PASSWORD || 
+    process.env.MYSQLPASSWORD || 
+    process.env.MYSQL_PASSWORD || 
+    process.env.MYSQL_ROOT_PASSWORD || 
+    process.env.PASSWORD || 
+    ""
+  );
   const isInternal = host.endsWith(".railway.internal") || host === "localhost" || host === "127.0.0.1";
 
   console.log(`Configuring MySQL via parameters: ${user}@${host}:${port}/${database} (Internal: ${isInternal}, Railway: ${isRailway})`);
