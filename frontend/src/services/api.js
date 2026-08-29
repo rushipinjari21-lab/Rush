@@ -32,7 +32,7 @@ export const getDefaultApiUrl = () => {
     /^https?:$/.test(window.location.protocol) &&
     !['localhost', '127.0.0.1', '::1'].includes(window.location.hostname)
   ) {
-    return formatApiUrl(`${window.location.protocol}//${window.location.hostname}/api`)
+    return '/api'
   }
 
   // Standalone public cloud backend for Android APK and multi-device access
