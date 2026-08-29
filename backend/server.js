@@ -209,7 +209,19 @@ const publicCandidates = [
 const staticDir = publicCandidates.find(p => fs.existsSync(path.join(p, "index.html")));
 if (staticDir) {
   console.log(`Serving static React frontend from: ${staticDir}`);
+  app.use("/assets", express.static(path.join(staticDir, "assets")));
   app.use(express.static(staticDir));
+  
+  // Intercept any relative subpath asset requests like /login/assets/*
+  app.use("*/assets", (req, res, next) => {
+    const assetName = path.basename(req.path);
+    const assetPath = path.join(staticDir, "assets", assetName);
+    if (fs.existsSync(assetPath)) {
+      return res.sendFile(assetPath);
+    }
+    next();
+  });
+
   app.get("*", (req, res, next) => {
     if (
       req.path.startsWith("/api") || 
