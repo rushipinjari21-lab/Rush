@@ -127,25 +127,17 @@ app.use(helmet({
 
 // CORS Configuration supporting Web, Android Capacitor, iOS, Tablet & Custom Domains
 app.use(cors({
-  origin: (origin, callback) => {
-    // Always allow mobile apps (Capacitor/Ionic), curl/tools without origin, or wildcard CORS
-    if (!origin || configuredCorsOrigins.includes("*") || configuredCorsOrigins.length === 0) {
-      return callback(null, true);
-    }
-    if (allowedCorsOrigins.has(origin) || origin.startsWith("capacitor://") || origin.startsWith("ionic://") || origin.includes("localhost")) {
-      return callback(null, true);
-    }
-    const isAllowed = configuredCorsOrigins.some(allowed => origin.includes(allowed.replace(/^https?:\/\//, '')));
-    if (isAllowed) return callback(null, true);
-    return callback(null, true);
-  },
-  credentials: true
+  origin: true,
+  credentials: true,
+  methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin"]
 }));
+app.options("*", cors());
 
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 2000,
+  max: 5000,
   message: { success: false, message: "Too many requests, please try again later." }
 });
 app.use(limiter);
@@ -180,7 +172,7 @@ app.get("/favicon.ico", (req, res) => res.status(204).end());
 
 // Keep Express alive while MySQL is starting, but let health checks through
 app.use((req, res, next) => {
-  if (req.path === "/health" || req.path === "/api/health") {
+  if (req.path === "/" || req.path === "/health" || req.path === "/api/health" || req.path === "/favicon.ico") {
     return next();
   }
   if (!databaseReady) {
@@ -192,16 +184,21 @@ app.use((req, res, next) => {
   next();
 });
 
-// API Routes
-app.use("/api/auth", authRoutes);
-app.use("/api/projects", projectRoutes);
-app.use("/api/boq", boqRoutes);
-app.use("/api/measurement-books", measurementRoutes);
-app.use("/api/abstract", abstractRoutes);
-app.use("/api/ra-bills", rabillRoutes);
-app.use("/api/reports", reportRoutes);
-app.use("/api/dakhala", dakhalaRoutes);
-app.use("/api/documents", documentRoutes);
+// API Routes (Dual mounted with and without /api prefix for bulletproof client routing)
+const mountRoutes = (prefix) => {
+  app.use(`${prefix}/auth`, authRoutes);
+  app.use(`${prefix}/projects`, projectRoutes);
+  app.use(`${prefix}/boq`, boqRoutes);
+  app.use(`${prefix}/measurement-books`, measurementRoutes);
+  app.use(`${prefix}/abstract`, abstractRoutes);
+  app.use(`${prefix}/ra-bills`, rabillRoutes);
+  app.use(`${prefix}/reports`, reportRoutes);
+  app.use(`${prefix}/dakhala`, dakhalaRoutes);
+  app.use(`${prefix}/documents`, documentRoutes);
+};
+
+mountRoutes("/api");
+mountRoutes("");
 
 // Error handling
 app.use(notFound);

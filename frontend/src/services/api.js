@@ -40,8 +40,14 @@ export const getDefaultApiUrl = () => {
 }
 
 export const getStoredApiUrl = () => {
+  const isMobileApp = typeof window !== 'undefined' && (window.Capacitor || window.location.hostname === 'localhost');
   const stored = localStorage.getItem('pcmc_server_url')?.trim()
   if (stored) {
+    // If on mobile device and stored is pointing to localhost / 127.0.0.1, auto-heal to cloud backend
+    if (isMobileApp && (stored.includes('localhost') || stored.includes('127.0.0.1'))) {
+      localStorage.removeItem('pcmc_server_url')
+      return getDefaultApiUrl()
+    }
     // Auto-heal incomplete/broken URLs from previous sessions
     if (stored.includes('remarkable-gentlen') && !stored.includes('railway.app')) {
       localStorage.removeItem('pcmc_server_url')
