@@ -79,7 +79,8 @@ export const setStoredApiUrl = (url) => {
 
 const api = axios.create({
   baseURL: getStoredApiUrl(),
-  headers: { 'Content-Type': 'application/json' }
+  headers: { 'Content-Type': 'application/json' },
+  adapter: typeof fetch !== 'undefined' ? 'fetch' : undefined
 })
 
 api.interceptors.request.use((config) => {

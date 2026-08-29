@@ -3,8 +3,8 @@
   "appName": "PCMC BillPro",
   "webDir": "dist",
   "server": {
-    "url": "https://remarkable-gentleness-production-a680.up.railway.app",
-    "cleartext": true
+    "cleartext": true,
+    "allowNavigation": ["*"]
   },
   "plugins": {
     "CapacitorHttp": {
