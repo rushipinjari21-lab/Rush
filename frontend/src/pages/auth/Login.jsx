@@ -178,9 +178,26 @@ const Login = () => {
               severity="error"
               sx={{ mb: 2 }}
               action={
-                <Button color="inherit" size="small" onClick={handleOpenSettings}>
-                  Server Settings
-                </Button>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                  <Button
+                    color="primary"
+                    variant="contained"
+                    size="small"
+                    sx={{ fontSize: '0.7rem', py: 0.2 }}
+                    onClick={() => {
+                      const cloudUrl = 'https://remarkable-gentleness-production-a680.up.railway.app/api'
+                      setStoredApiUrl(cloudUrl)
+                      setCurrentServerUrl(cloudUrl)
+                      setServerUrlInput(cloudUrl)
+                      setError('')
+                    }}
+                  >
+                    Use Cloud Server
+                  </Button>
+                  <Button color="inherit" size="small" sx={{ fontSize: '0.7rem' }} onClick={handleOpenSettings}>
+                    Settings
+                  </Button>
+                </Box>
               }
             >
               {error}
