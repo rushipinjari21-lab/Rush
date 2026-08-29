@@ -178,24 +178,31 @@ const Login = () => {
               severity="error"
               sx={{ mb: 2 }}
               action={
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mt: 0.5 }}>
                   <Button
                     color="primary"
                     variant="contained"
                     size="small"
-                    sx={{ fontSize: '0.7rem', py: 0.2 }}
-                    onClick={() => {
-                      const cloudUrl = 'https://remarkable-gentleness-production-a680.up.railway.app/api'
-                      setStoredApiUrl(cloudUrl)
-                      setCurrentServerUrl(cloudUrl)
-                      setServerUrlInput(cloudUrl)
+                    sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}
+                    onClick={async () => {
+                      localStorage.removeItem('pcmc_server_url')
+                      const defaultUrl = getDefaultApiUrl()
+                      setStoredApiUrl('')
+                      setCurrentServerUrl(defaultUrl)
+                      setServerUrlInput(defaultUrl)
                       setError('')
+                      try {
+                        setLoading(true)
+                        await login(username || 'admin', password || 'admin123')
+                        navigate('/')
+                      } catch {
+                        // Handled by standard flow
+                      } finally {
+                        setLoading(false)
+                      }
                     }}
                   >
-                    Use Cloud Server
-                  </Button>
-                  <Button color="inherit" size="small" sx={{ fontSize: '0.7rem' }} onClick={handleOpenSettings}>
-                    Settings
+                    Auto-Fix & Connect
                   </Button>
                 </Box>
               }

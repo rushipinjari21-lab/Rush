@@ -40,21 +40,19 @@ export const getDefaultApiUrl = () => {
 }
 
 export const getStoredApiUrl = () => {
-  const isMobileApp = typeof window !== 'undefined' && (window.Capacitor || window.location.hostname === 'localhost');
-  const stored = localStorage.getItem('pcmc_server_url')?.trim()
+  const stored = typeof window !== 'undefined' ? localStorage.getItem('pcmc_server_url')?.trim() : null
   if (stored) {
-    // If on mobile device and stored is pointing to localhost / 127.0.0.1, auto-heal to cloud backend
-    if (isMobileApp && (stored.includes('localhost') || stored.includes('127.0.0.1'))) {
-      localStorage.removeItem('pcmc_server_url')
-      return getDefaultApiUrl()
-    }
-    // Auto-heal incomplete/broken URLs from previous sessions
-    if (stored.includes('remarkable-gentlen') && !stored.includes('railway.app')) {
-      localStorage.removeItem('pcmc_server_url')
-      return getDefaultApiUrl()
-    }
-    // If stored URL is not valid http/https or incomplete
-    if (!stored.startsWith('http://') && !stored.startsWith('https://') && !stored.startsWith('/')) {
+    // If stored URL points to a local network IP or incomplete URL, auto-heal to cloud backend
+    if (
+      stored.includes('localhost') ||
+      stored.includes('127.0.0.1') ||
+      stored.includes('192.168.') ||
+      stored.includes('10.0.') ||
+      stored.includes('172.16.') ||
+      stored.includes('172.20.') ||
+      (stored.includes('remarkable-gentlen') && !stored.includes('railway.app')) ||
+      (!stored.startsWith('http://') && !stored.startsWith('https://') && !stored.startsWith('/'))
+    ) {
       localStorage.removeItem('pcmc_server_url')
       return getDefaultApiUrl()
     }
