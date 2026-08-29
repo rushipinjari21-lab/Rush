@@ -15,24 +15,37 @@ const getPoolConfig = () => {
     connectionLimit: parseInt(process.env.DB_CONNECTION_LIMIT || "20", 10),
     queueLimit: 0,
     enableKeepAlive: true,
-    keepAliveInitialDelay: 0
+    keepAliveInitialDelay: 0,
+    connectTimeout: 15000
   };
 
   if (databaseUrl) {
     try {
       const parsed = new URL(databaseUrl);
-      const isInternal = parsed.hostname.endsWith(".railway.internal") || parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1";
-      return {
-        host: parsed.hostname,
-        port: parseInt(parsed.port || "3306", 10),
-        user: decodeURIComponent(parsed.username || "root"),
-        password: decodeURIComponent(parsed.password || ""),
-        database: parsed.pathname.replace(/^\//, "") || "railway",
-        ...baseOptions,
-        ssl: (process.env.DB_SSL === "true" || (!isInternal && process.env.NODE_ENV === "production"))
-          ? { rejectUnauthorized: false }
-          : undefined
+      const host = parsed.hostname;
+      const port = parseInt(parsed.port || "3306", 10);
+      const user = decodeURIComponent(parsed.username || "root");
+      const password = decodeURIComponent(parsed.password || "");
+      const dbName = parsed.pathname ? parsed.pathname.replace(/^\//, "") : "";
+      const database = dbName || process.env.DB_NAME || process.env.MYSQLDATABASE || "railway";
+      const isInternal = host.endsWith(".railway.internal") || host === "localhost" || host === "127.0.0.1";
+
+      console.log(`Configuring MySQL connection to: ${user}@${host}:${port}/${database} (Internal: ${isInternal})`);
+
+      const config = {
+        host,
+        port,
+        user,
+        password,
+        database,
+        ...baseOptions
       };
+
+      if (process.env.DB_SSL === "true" || (!isInternal && process.env.DB_SSL === "require")) {
+        config.ssl = { rejectUnauthorized: false };
+      }
+
+      return config;
     } catch (e) {
       console.warn("Could not parse database URL with URL constructor:", e.message);
     }
@@ -43,19 +56,24 @@ const getPoolConfig = () => {
   const database = process.env.DB_NAME || process.env.MYSQLDATABASE || "pcmc_billpro";
   const user = process.env.DB_USER || process.env.MYSQLUSER || "root";
   const password = process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || "";
-  const isRemote = !["localhost", "127.0.0.1", "::1"].includes(host) && !host.endsWith(".railway.internal");
+  const isInternal = host.endsWith(".railway.internal") || host === "localhost" || host === "127.0.0.1";
 
-  return {
+  console.log(`Configuring MySQL connection to: ${user}@${host}:${port}/${database} (Internal: ${isInternal})`);
+
+  const config = {
     host,
     port,
     database,
     user,
     password,
-    ...baseOptions,
-    ssl: (process.env.DB_SSL === "true" || (process.env.NODE_ENV === "production" && isRemote))
-      ? { rejectUnauthorized: false }
-      : undefined
+    ...baseOptions
   };
+
+  if (process.env.DB_SSL === "true" || (!isInternal && process.env.DB_SSL === "require")) {
+    config.ssl = { rejectUnauthorized: false };
+  }
+
+  return config;
 };
 
 const pool = mysql.createPool(getPoolConfig());
@@ -79,7 +97,7 @@ export const testConnection = async () => {
     console.log("✅ MySQL Database connected successfully");
     return true;
   } catch (error) {
-    console.error("❌ Database connection failed:", error.message);
+    console.error("❌ Database connection failed:", error.message, error.code || "");
     throw error;
   }
 };
