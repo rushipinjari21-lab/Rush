@@ -201,9 +201,16 @@ mountRoutes("/api");
 mountRoutes("");
 
 // Serve static React web application for browser and multi-device access
-const frontendDistPath = path.join(__dirname, "../frontend/dist");
-if (fs.existsSync(frontendDistPath)) {
-  app.use(express.static(frontendDistPath));
+const publicCandidates = [
+  path.join(__dirname, "public"),
+  path.join(__dirname, "../frontend/dist"),
+  path.join(process.cwd(), "backend/public"),
+  path.join(process.cwd(), "frontend/dist")
+];
+const staticDir = publicCandidates.find(p => fs.existsSync(path.join(p, "index.html")));
+if (staticDir) {
+  console.log(`Serving static React frontend from: ${staticDir}`);
+  app.use(express.static(staticDir));
   app.get("*", (req, res, next) => {
     if (
       req.path.startsWith("/api") || 
@@ -213,7 +220,7 @@ if (fs.existsSync(frontendDistPath)) {
     ) {
       return next();
     }
-    res.sendFile(path.join(frontendDistPath, "index.html"));
+    res.sendFile(path.join(staticDir, "index.html"));
   });
 }
 
