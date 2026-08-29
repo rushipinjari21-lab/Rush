@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Box,
   IconButton,
@@ -53,7 +53,7 @@ export const ConnectionStatusBadge = () => {
 
     const startTime = Date.now()
     try {
-      const res = await axios.get(healthEndpoint, { timeout: 3500 })
+      const res = await axios.get(healthEndpoint, { timeout: 10000 })
       const elapsed = Date.now() - startTime
       if (res.status === 200 || res.data?.success) {
         setStatus({

@@ -128,14 +128,16 @@ app.use(helmet({
 // CORS Configuration supporting Web, Android Capacitor, iOS, Tablet & Custom Domains
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow non-browser tools, mobile apps, or matching origins
-    if (!origin || allowedCorsOrigins.has(origin) || configuredCorsOrigins.length === 0) {
+    // Always allow mobile apps (Capacitor/Ionic), curl/tools without origin, or wildcard CORS
+    if (!origin || configuredCorsOrigins.includes("*") || configuredCorsOrigins.length === 0) {
       return callback(null, true);
     }
-    // Check if origin matches configured domain wildcard/subdomain
+    if (allowedCorsOrigins.has(origin) || origin.startsWith("capacitor://") || origin.startsWith("ionic://") || origin.includes("localhost")) {
+      return callback(null, true);
+    }
     const isAllowed = configuredCorsOrigins.some(allowed => origin.includes(allowed.replace(/^https?:\/\//, '')));
     if (isAllowed) return callback(null, true);
-    return callback(new Error("Origin is not allowed by CORS"));
+    return callback(null, true);
   },
   credentials: true
 }));

@@ -32,11 +32,11 @@ export const getDefaultApiUrl = () => {
     /^https?:$/.test(window.location.protocol) &&
     !['localhost', '127.0.0.1', '::1'].includes(window.location.hostname)
   ) {
-    return formatApiUrl(`${window.location.protocol}//${window.location.hostname}:5000/api`)
+    return formatApiUrl(`${window.location.protocol}//${window.location.hostname}/api`)
   }
 
-  // In Capacitor Android WebView or native container, default to localhost:5000/api
-  return 'http://localhost:5000/api'
+  // Standalone public cloud backend for Android APK and multi-device access
+  return 'https://remarkable-gentleness-production-a680.up.railway.app/api'
 }
 
 export const getStoredApiUrl = () => {
