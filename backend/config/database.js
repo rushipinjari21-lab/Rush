@@ -8,7 +8,11 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const getPoolConfig = () => {
-  const databaseUrl = process.env.DATABASE_URL || process.env.MYSQL_URL;
+  const databaseUrl = process.env.DATABASE_URL || 
+                      process.env.MYSQL_URL || 
+                      process.env.MYSQL_PRIVATE_URL || 
+                      process.env.MYSQL_PUBLIC_URL || 
+                      process.env.DB_URL;
 
   const baseOptions = {
     waitForConnections: true,
@@ -19,7 +23,7 @@ const getPoolConfig = () => {
     connectTimeout: 15000
   };
 
-  if (databaseUrl) {
+  if (databaseUrl && !databaseUrl.startsWith("${{")) {
     try {
       const parsed = new URL(databaseUrl);
       const host = parsed.hostname;
@@ -51,11 +55,11 @@ const getPoolConfig = () => {
     }
   }
 
-  const host = process.env.DB_HOST || process.env.MYSQLHOST || "localhost";
-  const port = parseInt(process.env.DB_PORT || process.env.MYSQLPORT || "3306", 10);
-  const database = process.env.DB_NAME || process.env.MYSQLDATABASE || "pcmc_billpro";
-  const user = process.env.DB_USER || process.env.MYSQLUSER || "root";
-  const password = process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || "";
+  const host = process.env.DB_HOST || process.env.MYSQLHOST || process.env.MYSQL_HOST || "localhost";
+  const port = parseInt(process.env.DB_PORT || process.env.MYSQLPORT || process.env.MYSQL_PORT || "3306", 10);
+  const database = process.env.DB_NAME || process.env.MYSQLDATABASE || process.env.MYSQL_DATABASE || "railway";
+  const user = process.env.DB_USER || process.env.MYSQLUSER || process.env.MYSQL_USER || "root";
+  const password = process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || process.env.MYSQL_PASSWORD || "";
   const isInternal = host.endsWith(".railway.internal") || host === "localhost" || host === "127.0.0.1";
 
   console.log(`Configuring MySQL connection to: ${user}@${host}:${port}/${database} (Internal: ${isInternal})`);
