@@ -41,7 +41,20 @@ export const getDefaultApiUrl = () => {
 
 export const getStoredApiUrl = () => {
   const stored = localStorage.getItem('pcmc_server_url')?.trim()
-  return stored ? formatApiUrl(stored) : getDefaultApiUrl()
+  if (stored) {
+    // Auto-heal incomplete/broken URLs from previous sessions
+    if (stored.includes('remarkable-gentlen') && !stored.includes('railway.app')) {
+      localStorage.removeItem('pcmc_server_url')
+      return getDefaultApiUrl()
+    }
+    // If stored URL is not valid http/https or incomplete
+    if (!stored.startsWith('http://') && !stored.startsWith('https://') && !stored.startsWith('/')) {
+      localStorage.removeItem('pcmc_server_url')
+      return getDefaultApiUrl()
+    }
+    return formatApiUrl(stored)
+  }
+  return getDefaultApiUrl()
 }
 
 export const setStoredApiUrl = (url) => {
