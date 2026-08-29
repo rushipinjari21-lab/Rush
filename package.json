@@ -2,8 +2,8 @@
   "name": "pcmc-billpro-workspace",
   "private": true,
   "scripts": {
-    "start": "cd backend && npm install --production && node server.js",
-    "build": "cd backend && npm install --production",
+    "start": "cd backend && node server.js",
+    "build": "cd backend && npm install && cd ../frontend && npm install && npm run build",
     "frontend:dev": "npm --prefix frontend run dev",
     "frontend:build": "npm --prefix frontend run build",
     "backend:dev": "npm --prefix backend run dev",

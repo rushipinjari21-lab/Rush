@@ -200,6 +200,23 @@ const mountRoutes = (prefix) => {
 mountRoutes("/api");
 mountRoutes("");
 
+// Serve static React web application for browser and multi-device access
+const frontendDistPath = path.join(__dirname, "../frontend/dist");
+if (fs.existsSync(frontendDistPath)) {
+  app.use(express.static(frontendDistPath));
+  app.get("*", (req, res, next) => {
+    if (
+      req.path.startsWith("/api") || 
+      req.path.startsWith("/uploads") || 
+      req.path === "/health" || 
+      req.path === "/favicon.ico"
+    ) {
+      return next();
+    }
+    res.sendFile(path.join(frontendDistPath, "index.html"));
+  });
+}
+
 // Error handling
 app.use(notFound);
 app.use(errorHandler);
