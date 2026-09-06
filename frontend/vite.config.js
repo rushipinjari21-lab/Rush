@@ -1,10 +1,11 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [react()],
-  // Capacitor loads the bundled files from the Android app rather than a web server.
-  base: './',
+  // Native WebViews load bundled files from disk, while web deployments require
+  // root-relative assets so BrowserRouter routes can be refreshed directly.
+  base: mode === 'capacitor' ? './' : '/',
   server: {
     port: 5173,
     host: true,
@@ -20,4 +21,4 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: true
   }
-})
+}))

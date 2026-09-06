@@ -137,7 +137,7 @@ Prerequisites: JDK 21, Android Studio / SDK tools.
 ```powershell
 cd frontend
 $env:VITE_API_URL = "https://api.yourdomain.com/api"
-npm run build
+npm run build:capacitor
 npx cap sync android
 
 # Build Debug APK
@@ -158,7 +158,7 @@ $env:JAVA_HOME = "C:\Program Files\Java\jdk-21"
 ```bash
 cd frontend
 export VITE_API_URL="https://api.yourdomain.com/api"
-npm run build
+npm run build:capacitor
 npx cap add ios
 npx cap sync ios
 npx cap open ios
