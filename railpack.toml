@@ -1,0 +1,14 @@
+[build]
+# Build frontend, copy dist to backend/public, then install backend
+cmds = [
+  "npm --prefix frontend install && npm --prefix frontend run build",
+  "mkdir -p backend/public && cp -r frontend/dist/* backend/public/",
+  "npm --prefix backend install"
+]
+
+[runtime]
+node_version = "20"
+
+[start]
+cmd = "node backend/server.js"
+
