@@ -9,7 +9,7 @@
     "backend:dev": "npm --prefix backend run dev",
     "backend:start": "npm --prefix backend start",
     "backend:test": "npm --prefix backend test",
-    "android:sync": "npm --prefix frontend run build && npm --prefix frontend exec cap sync android",
-    "android:build": "npm --prefix frontend run build && npm --prefix frontend exec cap build android"
+    "android:sync": "npm --prefix frontend run build:capacitor && npm --prefix frontend exec cap sync android",
+    "android:build": "npm --prefix frontend run build:capacitor && npm --prefix frontend exec cap build android"
   }
 }
